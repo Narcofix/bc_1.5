@@ -19,6 +19,9 @@ require_once realpath(dirname(__FILE__)) .'/entityVideo.php';
 require_once realpath(dirname(__FILE__)) .'/relationImageSlider.php';
 require_once realpath(dirname(__FILE__)) .'/relationSliderPage.php';
 
+require_once realpath(dirname(__FILE__)) .'/entityPhoto.php';
+require_once realpath(dirname(__FILE__)) .'/entityPhotoToFolder.php';
+
 $groupsEntity->connect();
 $entitiesEntity->connect();
 $usersEntity->connect();
@@ -36,6 +39,9 @@ $imageEntity->connect();
 $sliderEntity->connect();
 $fileToFolderEntity->connect();
 $videoEntity->connect();
+
+$photoEntity->connect();
+$photoToFolderEntity->connect();
 
 $imageSliderRelation->connect();
 $sliderPageRelation->connect();
