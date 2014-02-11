@@ -23,7 +23,7 @@ class entityPhotoToFolder extends EntityPhoto {
 	public function __construct($database, $name) {
 		parent::__construct($database, $name, WITH_OWNER);
 		//inizializzo path salvaggio immagini
-		//$this -> storagePath = self::getStoragePath();
+		$this -> storagePath = self::getStoragePath();
 		
 		$this -> addField("path", VARCHAR, 255, MANDATORY);
 	}
@@ -59,4 +59,4 @@ class entityPhotoToFolder extends EntityPhoto {
 
 }
 
-$photoToFolderEntity = new entityPhotoToFolder($database, "sys_photo");
+$photoToFolderEntity = new entityPhotoToFolder($database, "sys_photo_folder");
