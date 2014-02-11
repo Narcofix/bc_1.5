@@ -47,8 +47,11 @@ class entityPhoto extends Entity {
 		}
 
 		if (isset($values_condition['file'])) {
+			if(!isset($values_condition['storage']))
+				$values_condition['storage'] = "Dir";	
 			//analizzo informazioni immagine
 			$file_infos = getimagesize ( $values_condition['file']['tmp_name'] );
+			//se si tratta di una immaggine supportata
 			if( $file_infos ){
 				$values_condition['filename'] = $values_condition['file']['name'];
 				$values_condition['size'] = $values_condition['file']['size'];
@@ -62,10 +65,19 @@ class entityPhoto extends Entity {
 				switch ($values_condition['storage']) {
 					default:
 					case 'Dir':
+						//se non settata la storage path
+						if(!isset($values_condition['storagePath']))
+							//storage path di default
+							$values_condition['storagePath'] = entityPhotoToFolder::getStoragePath();
+						
+						//salvo il file uploadato
 						move_uploaded_file(
 							$values_condition["file"]["tmp_name"],
 							$values_condition['storagePath'].uniqid()
 						);
+						//elimino la storage path
+						unset ($values_condition['storagePath'] );
+						
 						break;
 					case 'Db':
 						$values_condition['data'] = 
@@ -77,6 +89,7 @@ class entityPhoto extends Entity {
 						break;
 				}
 
+				unset($values_condition['storage']);
 			}
 			
 		}
