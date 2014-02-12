@@ -12,6 +12,7 @@ class EntityFileToFolder extends Entity
 		$this->addField("filename",VARCHAR,255, MANDATORY);
 		$this->addField("size",INT,5);
 		$this->addField("filetype",VARCHAR,255,MANDATORY);
+		$this->setPresentation("Immagini");
 	}
 
     public function save($values_condition)
