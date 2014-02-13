@@ -61,7 +61,10 @@ class LongDateType extends baseType {
 			$time = explode(":", $_REQUEST[$this->name."_time"]);
 			$value .= $time[0].":".$time[1].":00";
 		}
-		else $value = date('Y/m/d H:i:s', strtotime( $this->value ));	
+		else{
+			$longDateTime = DateTime::createFromFormat('d/m/Y H:i:s' , $this->value);
+			$value = $longDateTime->format('Y/m/d H:i:s'); 
+		}		
 		return Parser::first_comma($commaId,", ")."'{$value}'";
 	}
 
@@ -79,7 +82,10 @@ class LongDateType extends baseType {
 			$time = explode(":", $_REQUEST[$this->name."_time"]);
 			$value .= $time[0].":".$time[1].":00";
 		}
-		else $value = date('Y/m/d H:i:s', strtotime( $this->value ));
+		else{
+			$longDateTime = DateTime::createFromFormat('d/m/Y H:i:s' , $this->value);
+			$value = $longDateTime->format('Y/m/d H:i:s'); 
+		}
 		
 		$query .= Parser::first_comma($commaId,", ")."{$this->name}='{$value}'";
 		return $query;
