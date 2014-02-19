@@ -29,4 +29,4 @@ class EntityPage extends Entity
 $pageEntity = new EntityPage($database, "sys_page", WITH_OWNER);
 $pageEntity->addReference($sectionEntity, "section");
 $pageEntity->addReference($pageEntity, "father");
-$pageEntity->addReference($imageEntity,"foto");
+$pageEntity->addReference($photoToFolderEntity,"foto");
