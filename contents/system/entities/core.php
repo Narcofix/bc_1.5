@@ -10,6 +10,10 @@ require_once realpath(dirname(__FILE__)) .'/entityLog.php';
 require_once realpath(dirname(__FILE__)) .'/entitySection.php';
 require_once realpath(dirname(__FILE__)) .'/entityFile.php';
 require_once realpath(dirname(__FILE__)) .'/entityImage.php';
+
+require_once realpath(dirname(__FILE__)) .'/entityPhoto.php';
+require_once realpath(dirname(__FILE__)) .'/entityPhotoToFolder.php';
+
 require_once realpath(dirname(__FILE__)) .'/entityPage.php';
 require_once realpath(dirname(__FILE__)) .'/entityMenu.php';
 require_once realpath(dirname(__FILE__)) .'/entityNews.php';
@@ -19,8 +23,6 @@ require_once realpath(dirname(__FILE__)) .'/entityVideo.php';
 require_once realpath(dirname(__FILE__)) .'/relationImageSlider.php';
 require_once realpath(dirname(__FILE__)) .'/relationSliderPage.php';
 
-require_once realpath(dirname(__FILE__)) .'/entityPhoto.php';
-require_once realpath(dirname(__FILE__)) .'/entityPhotoToFolder.php';
 
 $groupsEntity->connect();
 $entitiesEntity->connect();
