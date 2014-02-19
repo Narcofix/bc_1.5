@@ -24,7 +24,7 @@ $form->addSelectFromReference($pageEntity, 'father','Padre');
 
 //$form->addHierarchicalPosition('section', 'Sezione padre',MANDATORY,$sectionEntity);
 
-$imageForm=new ImageForm('imageEntry',$pageEntity);
+$imageForm=new PhotoForm('imageEntry',$pageEntity);
 $imageForm->addImage('foto','Foto');
 $form->triggers($imageForm);
 
