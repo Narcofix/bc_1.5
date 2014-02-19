@@ -6,9 +6,9 @@
  * Configurations inclusion
  */
 require_once(realpath(dirname(__FILE__))."/settings.inc.php");
-
+/*
 if(Settings::getOperativeMode()=="release")
-	error_reporting(E_ERROR);
+	error_reporting(E_ERROR);*/
 
 require_once(realpath(dirname(__FILE__))."/config.inc.php");
 require_once realpath(dirname(__FILE__))."/message.inc.php";

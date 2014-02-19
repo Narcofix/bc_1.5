@@ -1,0 +1,81 @@
+{literal}
+<script type="text/javascript">
+	var _lib = _lib || {};
+	
+	_lib.photoInfos = _lib.photoInfos || {};
+	
+	_lib.photoInfos.last = {/literal}{$instance->id}{literal}; 
+	
+	//parametri bindati 
+	_lib.photoInfos[ _lib.photoInfos.last ] = {
+		//caso selezione multipla per le relazioni
+		"W"	: "{/literal}{$instance->width}{literal}"*1,
+		"H" : "{/literal}{$instance->height}{literal}"*1,
+		"UpDate" : "{/literal}{$instance->uploadDate}{literal}",
+		"AqDate" : "{/literal}{$instance->creationDate}{literal}",
+		"type" : "{/literal}{$instance->filetype}{literal}",
+		"size" : "{/literal}{$instance->humansize}{literal}",
+		"lastOp" : "end",
+		"cropData":{},
+		"resetData":{}
+	};	
+{/literal}
+</script>
+<div id="liveReport">
+	<div class="photo_preview_img_edit">
+		<ul class="tabs">
+			<li class="photo_tabs_edit_ops_end _hide nodisableli" data-op="end">
+				<a href="javascript:void(0)"> fine </a>
+			</li>
+			<li class="photo_tabs_edit_ops_crop" data-op="crop">
+				<a href="javascript:void(0)"> <img class="add_entities" src="skins/system/images/icn_jump_crop.png" alt="crop" title="crop"/> </a>
+			</li>
+			<li class="photo_tabs_edit_ops_reset" data-op="reset">
+				<a href="javascript:void(0)"> <img class="add_entities" src="skins/system/images/icn_jump_back.png" alt="reset" title="reset"/> </a>
+			</li>
+		</ul>
+	</div>
+	{if $instances != null || $instance != null}
+	<div class="photo_preview_img_div_out">
+		<div class="photo_preview_img_div">
+			<!--lo span vuoto serve per centrare l'immagine verticalmente-->
+			<span class="centerer"> </span>
+			<img alt="thumbnail" src="/getThumb.php?image_id={$instance->id}&refresh={$service_time}"/>
+		</div>
+	</div>
+	<div>
+		<table class="tablesorter_photo_info" cellspacing="0">
+			<tbody>
+				<tr>
+					<th> File mime </th>
+					<td> {$instance->filetype} </td>
+				</tr>
+				<tr>
+					<th> File size </th>
+					<td> {$instance->humansize} </td>
+				</tr>
+				<tr>
+					<th> Width</th>
+					<td class="tablesorter_photo_info_W"> {$instance->width} </td>
+				</tr>
+				<tr>
+					<th> Height</th>
+					<td class="tablesorter_photo_info_H"> {$instance->height} </td>
+				</tr>
+				<tr>
+					<th> Data acquisizione</th>
+					<td>
+						{$instance->creationDate}
+						<a href="{$service_link}?action=emit&preload=1&value={$instance->id}" title="Modifica">
+							<img src="skins/system/images/icn_edit.png" alt="modifica elemento"/> 
+						</a>  
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>	
+	{else}
+	<h1>Informazioni non trovate</h1>
+	{/if}
+</div>
+

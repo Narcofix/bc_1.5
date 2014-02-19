@@ -1,0 +1,713 @@
+{*  
+	widget per la selezione di immagini.
+	Puo' essere utilizzato sia in modalita selezione singola
+	che multipla.
+*}
+{literal}
+<style type="text/css">
+	._fl{
+		float:left;
+	}
+	.clearfix:after {
+    	content: ".";
+    	display: block;
+    	clear: both;
+    	visibility: hidden;
+    	line-height: 0;
+    	height: 0;
+	}
+ 
+	.clearfix {
+    	display: inline-block;
+	}
+ 
+	html[xmlns] .clearfix {
+    	display: block;
+	}
+
+	* html .clearfix {
+    	height: 1%;
+	}
+	
+	.gallery_img_div{
+		overflow-x: scroll; 
+		overflow-y:hidden;
+		height: 175px;
+		width: 95%;
+		position: relative;
+		margin: 0 auto;
+	}
+	.gallery_img_list{
+		padding: 0px;
+		margin: 0px;
+		width: auto;
+		white-space: nowrap;
+		position:absolute;
+	}
+	.gallery_img_list  li {
+        width: 150px;
+        min-height: 150px;
+        _height: 150px;
+        height: 150px;
+        
+        display: -moz-inline-stack;
+        display: inline-block;
+        vertical-align: top;
+        margin: 5px;
+        zoom: 1;
+        *display: inline;
+    }
+    .gallery_img{
+    	cursor: pointer;
+    }
+    .ajax_module_form{
+    	margin:0 10px;
+    }
+    #photo-widget{
+    	max-width: 100%;
+    	border: 1px solid #CCC!important;
+    }
+    #photo-widge-head{
+    	width: 100%;
+    }
+	#photo-widget-label{
+		margin:3px 0 0 10px;
+		height: 26px;
+		line-height: 26px;
+		text-shadow: 0 1px 0 #FFF;
+		font-weight: 200;
+	}
+	.photo_preview_contents_mess{
+		width: 250px;
+		margin: 30px auto;
+		text-align: center;
+	}
+	.photo_preview_img_div_out{
+		margin: 20px auto;
+		width: 270px;
+		height: 270px;
+	}
+	.photo_preview_img_div{
+		position:relative;
+		text-align: center;
+		width: 100%;
+		height: 100%;
+	}
+	.photo_preview_img_div span.centerer{
+		display: inline-block;
+	    height: 100%;
+	    vertical-align: middle;
+	}
+	.photo_preview_img_div img{
+		display: inline-block;
+	    vertical-align: middle;
+	}
+	.photo_preview_img_edit{
+		cursor: pointer;
+		position: absolute;
+		top:0;
+		left:0;
+		display:none;
+		height: 100%;
+		width: 100%;
+	}
+	.photo_preview_img_edit_header{
+		height:34px;
+		background: url(skins/system/images/table_sorter_header.png) repeat-x;
+		-webkit-border-radius: 5px;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+	}
+	.photo_preview_img_edit_header span{
+		line-height: 34px;
+		font-weight:bold;
+	}
+</style>
+{/literal}
+<script type="text/javascript" src="skins/system/js/jquery.iframe-transport.js"></script>
+<script type="text/javascript" src="skins/system/js/jquery.lazyload.min.js"></script>
+{literal}
+<script type="text/javascript">
+	var _lib = _lib || {};
+	//parametri bindati 
+	_lib.formInfo = {
+		//caso selezione multipla per le relazioni
+		"multiselect"	: {/literal}{if $multiselect }true{else}false{/if}{literal},
+		"inputName" 	: "{/literal}{$name}{literal}",
+		"formHash"  	: "{/literal}{$formHash}{literal}",
+		"selectedId"	: {/literal}{$preloadedImageId}{literal},
+		"username"  	: "{/literal}{$loggedUsername}{literal}",
+		"ajaxUrl"   	: "ajax-manager.php",
+		"ajaxModes" 	: ["onlyids"],
+		"photoTable"	: "sys_photo_folder",
+		"loaderGifUrl"	: "skins/system/images/loading.gif",
+		"photoUrl"  	: "getThumb.php?image_size=1&image_id=",
+		"photoManager" 	: "admin-image-manager.php"
+	};
+{/literal}
+</script>
+
+{literal}
+<script type="text/javascript">
+	var _lib = _lib || {};
+	//libreria gestione galleria immagini	
+	_lib.pwidget = {};
+	//libreria gestione aggiunta immagini
+	_lib.pwidgetAdd = {};
+	//libreria gestione pulsanti ops
+	_lib.pwidgetOps = {};
+	//libreria utilita'
+	_lib.pwidgetUtils = {};
+	
+	(function(pwidget) {
+		//contenitore id
+		pwidget.ids = null;
+		//html relativo ad un elemento della lista di immagini
+		pwidget.photoListElHtml = null;
+		//ultimo id photo selezionata
+		pwidget.lastSelectedPhotoId = -1;
+		//div dove inserisco i campi hidden da postare
+		pwidget.postInputDiv = null;
+		//hashset delle immagini selezionate
+		pwidget.selectedPhotos = {};
+		//oggetto con gli hash per gli inputname
+		pwidget.selectedPhotosHashes = {};
+		
+		pwidget.initIds = function(resp){
+			//se ho la risposta e ci sono id
+			if($.isArray(resp) && resp.length ){
+				//se gia presenti gli aggiorno
+				if(pwidget.ids)
+					return pwidget.UpdateIds(resp);
+					 
+				pwidget.ids = resp;
+				var listUl = $(".gallery_img_list");
+				
+				//inizializzo la galleria
+				for(var i=0,l=pwidget.ids.length;i<l;i++)
+					listUl.append( pwidget.prepareListHtml( pwidget.ids[i]) );
+					
+				//aspetto che una delle immagini di loading sia caricata
+				listUl
+				.find(".gallery_img")
+				.first()
+				.load(pwidget.initNewPhotos);
+			}
+		};
+		//aggiorno gli id con i nuovi
+		pwidget.UpdateIds = function(newIds){
+			//calcolo le differenze
+			diffid = _lib.pwidgetUtils.arrayDiff(newIds,pwidget.ids);
+			
+			var listUl = $(".gallery_img_list");
+			
+			//inserisco le nuove immagini
+			listUl.append( pwidget.prepareListHtml( diffid[0] ) );
+			
+			listUl
+				.find(".gallery_img")
+				.last()
+				.load(pwidget.initNewPhoto);
+			
+			pwidget.handleOpClick();
+			
+			pwidget.ids = newIds;
+		};
+		
+		//gestisce click pulsante visualizza galleria
+		pwidget.handleOpClick = function (){
+			_lib.pwidgetOps.updateActiveOpPanel("adder_img_div","gallery_img_div");
+			_lib.pwidgetOps.updateActiveOp("photo_tabs_ops_gallery");
+		};
+		//gestisce click immagine
+		pwidget.handlePhotoClick = function(event){
+			pwidget.selectPhotoByElementImg(
+				$(this).find(".gallery_img")
+			);
+			return;
+		};
+		//prepara l'html di un elemento della  galleria
+		pwidget.prepareListHtml = function(photoId){
+			//sistemo html
+			return pwidget.photoListElHtml
+			//inserisco nome univoco
+			.replace(
+				'id=""',
+				'id="'+_lib.formInfo.formHash+'_img_'+photoId+'"'
+			)
+			//inserisco loader al campo img
+			.replace(
+				'src=""',
+				'src="'+_lib.formInfo.loaderGifUrl+'"'
+			)
+			//inserisco id immagine tabella
+			.replace(
+				'data-id=""',
+				'data-id="'+photoId+'"'
+			)
+			//inserisco thumb al campo img
+			.replace(
+				'data-original=""',
+				'data-original="'+_lib.formInfo.photoUrl+photoId+'"'
+			);
+		};
+		
+		pwidget.selectPhotoByElementImg = function($elementImg){
+			var photoId = $elementImg.data("id");
+			//se e' gia stata selezionata
+			if($elementImg.data("selected")){
+				//la deseleziono
+				pwidget.deselectPhotoByElementId( photoId );
+				pwidget.lastSelectedPhotoId = -1;
+			}
+			//se non e' gia stata selezionata
+			else if(!( photoId in pwidget.selectedPhotos ) ){
+				//cambio il label
+				pwidget.changeMessLabel(
+					$elementImg
+						.parent()
+						.find('.photo_preview_img_edit')
+						.find('span'),
+					"selezionata",
+					"red"
+				);
+				
+				//disattivo suggerimento
+				$elementImg
+					.parents(".photo_preview_img_div")
+					//eseguo trigger per mostrare label
+					.mouseenter()
+					.unbind("mouseleave")
+					.unbind("mouseenter")
+					.hover( 
+						pwidget.handleSelectedPhotoHoverIn,
+						pwidget.handleSelectedPhotoHoverOut
+					);
+				//se gia' hover attivo il laber
+				if($elementImg.parent().find(":hover").length)
+					$elementImg.mouseenter();
+				
+				//deseleziono il precedente solo in selezione singola
+				if(!_lib.formInfo.multiselect)
+					pwidget.deselectPhotoByElementId( pwidget.lastSelectedPhotoId );
+				
+				//aggiungo il nuovo
+				pwidget.addSelectedInput(photoId);
+				//salvo id ultima foto selezionata
+				pwidget.lastSelectedPhotoId = photoId;
+				
+				$elementImg.data("selected",true);
+			}
+		};
+		
+		pwidget.deselectPhotoByElementId = function(photoId){
+			//controllo id
+			if(photoId<1)return;
+			
+			//ptr immagine precedentemente selezionata
+			var $oldelementImg = $( pwidget.getImgId( photoId ) );
+			//se selezionata
+			if($oldelementImg.data("selected")){
+				//riattivo il suggerimento per la precedente
+				$oldelementImg
+					.parents(".photo_preview_img_div")
+					.unbind("mouseleave")
+					.unbind("mouseenter")
+					.mouseleave()
+					.hover( 
+						pwidget.handlePhotoHoverIn,
+						pwidget.handlePhotoHoverOut
+					)
+					.mouseleave();
+				
+				//cambio il label
+				pwidget.changeMessLabel(
+					$oldelementImg
+						.parent()
+						.find('.photo_preview_img_edit')
+						.find('span')
+					,
+					"seleziona",
+					""
+				);
+				
+				$oldelementImg.data("selected",false);
+				
+				//rimuovo il precedente
+				pwidget.removeSelectedInput(photoId);
+			}
+		};
+		
+		pwidget.getInputName = function(photoId){
+			if( _lib.formInfo.multiselect ){
+				//salvo un hash per l'id
+				if(!(photoId in pwidget.selectedPhotosHashes)){
+					pwidget.selectedPhotosHashes[photoId] = $.now();
+				}
+				
+				var name = 
+					_lib.formInfo.inputName + 
+					pwidget.selectedPhotosHashes[photoId];
+				
+				return name;
+				
+			}
+			else 
+				return _lib.formInfo.inputName;
+		};
+		
+		pwidget.getImgId = function(photoId){
+			return '#'+_lib.formInfo.formHash + '_img_'+photoId;
+		};
+		
+		pwidget.addSelectedInput = function(photoId){
+			//aggiungo id immagine selezionata
+			pwidget.selectedPhotos[photoId] = true;
+			
+			var inputName = pwidget.getInputName(photoId);
+			var $input = pwidget.postInputDiv.find("input[name='"+inputName+"']" );
+			
+			//se non esiste
+			if($input.length < 1){
+				$input = $('<input type="hidden" name="'+inputName+'" value="'+photoId+'"/>');
+				pwidget.postInputDiv.append($input);
+			}
+			else $input.val(photoId);
+		};
+		
+		pwidget.removeSelectedInput = function(photoId){
+			if( photoId in pwidget.selectedPhotos ){
+				var inputName = pwidget.getInputName(photoId);
+				//rimuovo l'hidden el
+				pwidget.postInputDiv
+				.find("input[name='"+inputName+"']" )
+				.remove();
+				
+				delete pwidget.selectedPhotos[photoId];
+			}
+		};
+		
+		pwidget.changeMessLabel = function($span,mess,color){
+			$span.empty()
+			.append(mess)
+			.css("color",color);
+		};
+		
+		pwidget.handlePhotoHoverIn = function(){
+			$(this)
+				.find(".photo_preview_img_edit")
+				.stop(true,true)
+				.fadeIn();
+		};
+		
+		pwidget.handlePhotoHoverOut = function(){
+			$(this)
+				.find(".photo_preview_img_edit")
+				.stop(true,true)
+				.hide(0);
+		};		
+		
+		pwidget.handleSelectedPhotoHoverIn = function(){
+			pwidget.changeMessLabel(
+				$(this)
+					.find('.photo_preview_img_edit')
+					.find('span')
+				,
+				"deseleziona",
+				"red"
+			);
+		};
+		
+		pwidget.handleSelectedPhotoHoverOut = function(){
+			pwidget.changeMessLabel(
+				$(this)
+					.find('.photo_preview_img_edit')
+					.find('span')
+				,
+				"selezionata",
+				"red"
+			);
+		};
+		
+		//bindo lazy load sulle immagini e click
+		pwidget.initNewPhotos = function(){
+			//disattivo load in caso cambio immagine
+			$(this).unbind("load");
+			//applico lazy load alle immagini con il loader
+			$(".gallery_img")
+			.lazyload({
+				threshold : -10,
+				effect: "fadeIn",
+				container: $(".gallery_img_div")
+			});
+			
+			$(".photo_preview_img_div")
+			//hoverin hoverout suggerimento
+			.hover( 
+				pwidget.handlePhotoHoverIn,
+				pwidget.handlePhotoHoverOut
+			)
+			//selezione al click
+			.click(pwidget.handlePhotoClick);
+			
+			//se era stata selezionata una immagine
+			//nella edit precedente la ricarico
+			if(
+				_lib.formInfo.selectedId && 
+				_lib.formInfo.selectedId.length
+			){
+				for(
+					var i=0,l=_lib.formInfo.selectedId.length;
+					i<l;
+					i++
+				){
+					$imgEl = $( pwidget.getImgId( _lib.formInfo.selectedId[i] ) );
+					pwidget.selectPhotoByElementImg( $imgEl );
+				}
+				//eseguo scroll
+				pwidget.updateGalleryPosTo( $imgEl );
+				
+			}
+		};
+		
+		//bindo lazy load su una immagine e click
+		//e la seleziono
+		pwidget.initNewPhoto = function(){
+			$imgEl = $(this); 
+			//disattivo load in caso cambio immagine
+			$imgEl.unbind("load");
+			//applico lazy load alle immagini con il loader
+			$imgEl
+			.lazyload({
+				threshold : -10,
+				effect: "fadeIn",
+				container: $(".gallery_img_div")
+			});
+			
+			$imgEl
+			.closest(".photo_preview_img_div")
+			//hoverin hoverout suggerimento
+			.hover( 
+				pwidget.handlePhotoHoverIn,
+				pwidget.handlePhotoHoverOut
+			)
+			//selezione al click
+			.click(pwidget.handlePhotoClick);
+			
+			//seleziono la foto
+			pwidget.selectPhotoByElementImg( $imgEl );
+			//eseguo scroll
+			pwidget.updateGalleryPosTo( $imgEl );
+			
+			
+		};
+		
+		pwidget.updateGalleryPosTo = function($img){
+			var $liEl = 
+				$(".gallery_img_list li").eq( 
+					$img.parents("li").index()
+				);
+				 
+			$(".gallery_img_div").scrollLeft(
+				$liEl.position().left - 
+				$liEl.outerWidth(true)
+			);
+		};
+		
+		pwidget.getIdsList = function(){
+			//ottengo la lista di immagini caricate
+			$.ajax({
+				type : 'GET',
+  				dataType: "json",
+  				async : true,
+  				url: _lib.formInfo.ajaxUrl,
+				data: {
+					table : _lib.formInfo.photoTable,
+					owner : _lib.formInfo.username,
+					mode  : _lib.formInfo.ajaxModes[0] 
+				},
+  				success: pwidget.initIds 
+			});
+		};
+		
+		//inizializzo la libreria
+		pwidget.init = function(){
+			//bind click su add op
+			$(".photo_tabs_ops_gallery").click(pwidget.handleOpClick);
+			//salvo ptr al div dove inserire i campo/i hidden da postare
+			pwidget.postInputDiv = $("#photo-id-to-post"); 
+			//$( "input[name='"+_lib.formInfo.inputName+"']" );
+			
+			//salvo l'html relativo ad uno degli elementi della galleria
+			pwidget.photoListElHtml = 
+			$("#photo-widget")
+				.find("noscript")
+				.text()
+				.replace("<!--","")
+				.replace("//-->","")
+				.trim();
+			
+			pwidget.getIdsList();
+		};
+	})(_lib.pwidget);
+
+	(function(pwidgetAdd) {
+		pwidgetAdd.form = null;
+		
+		pwidgetAdd.getFormHtml = function(){
+			$.ajax({
+				type : 'GET',
+  				dataType: "html",
+  				async : false,
+  				url: _lib.formInfo.photoManager, 
+  				data: {"action":"emit","only_form":1}
+			}).done(function( data ) {
+				pwidgetAdd.form = 
+				$(".adder_img_div")
+					.html( data )
+					.find("form")
+					.attr("action",_lib.formInfo.photoManager);
+				
+				pwidgetAdd.setFormView();
+  			});
+		};
+		
+		//funzione che sistema la grafica della form
+		pwidgetAdd.setFormView = function (){
+			//sistemo classe div che contiene in form
+			pwidgetAdd.form
+				.parent()
+				.removeClass('module_form')
+				.addClass('ajax_module_form');
+			
+			//sistemo pulsante submit
+			pwidgetAdd.form
+				.find(".closing")
+				.find("input:submit")
+				.val("aggiungi e torna alla galleria");
+		};
+		
+		pwidgetAdd.handleOpClick = function(){
+			_lib.pwidgetOps.updateActiveOpPanel("gallery_img_div","adder_img_div");
+			_lib.pwidgetOps.updateActiveOp("photo_tabs_ops_add");
+		};
+		
+		pwidgetAdd.handleFormSubmit = function(event){
+			event.preventDefault();
+			event.stopPropagation();
+			
+			//eseguo upload tramite metodo iframe
+			$.ajax({
+				type:		'POST',
+				url:		_lib.formInfo.photoManager + "?ajax_post=1",
+				dataType:	"iframe",
+				formData:	_lib.pwidgetAdd.form.serializeArray(),
+				fileInput:	_lib.pwidgetAdd.form.find("#file"),
+				success:	_lib.pwidget.getIdsList
+			});
+		};
+		
+		pwidgetAdd.init = function(){
+			//ottengo html form caricamento immagine
+			//in modo bloccante
+			pwidgetAdd.getFormHtml();
+			//attivo aggiungi
+			$(".photo_tabs_ops_add").click(pwidgetAdd.handleOpClick);
+			//disattivo submit normale e bindo funzione handler
+			pwidgetAdd.form.submit(pwidgetAdd.handleFormSubmit);
+		};
+	})(_lib.pwidgetAdd);
+	
+	(function(pwidgetOps) {
+		pwidgetOps.updateActiveOp = function(opClass){
+			$("[class^=photo_tabs_ops]").removeClass("active");
+			$("."+opClass).addClass("active");
+		};
+		
+		pwidgetOps.updateActiveOpPanel = function(oldOpPanelClass,newOpPanelClass){
+			$("."+oldOpPanelClass).addClass('_hide');
+			$("."+newOpPanelClass).removeClass('_hide');
+			//fix grafico
+			$('.column').css({"height":"","min-height":""}).equalHeight();			
+		};
+		
+		pwidgetOps.init = function(){
+			//disattivo i precedenti bind 	
+			$("[class^=photo_tabs_ops]").off();
+		};
+	})(_lib.pwidgetOps);
+	
+	(function(pwidgetUtils) {
+		//array appoggio ops
+		pwidgetUtils.temp = null;
+		pwidgetUtils.arrayDiff = function(arr1,arr2){
+			//preparo gli array
+			pwidgetUtils.temp = 
+			arr1.length > arr2.length ?
+			[ arr1, arr2 ]: 
+			[ arr2, arr1 ];
+			
+			return jQuery.grep( 
+				pwidgetUtils.temp[0], 
+				function(elementOfArray){ 
+					return( 
+						jQuery.inArray(
+							elementOfArray,
+							_lib.pwidgetUtils.temp[1]
+						) == -1 
+					);
+				}
+			);
+		};
+	})(_lib.pwidgetUtils);
+	
+	$(document).ready(function() {
+		_lib.pwidgetOps.init();
+		_lib.pwidgetAdd.init();
+		_lib.pwidget.init();
+	});
+</script>
+{/literal}
+
+<!-- Photo field widget -->
+<fieldset id="photo-widget">
+	<div id="photo-widge-head" class="clearfix">
+		<div id="photo-widget-label" class="_fl"> Seleziona una foto</div>
+		<ul class="tabs" class="_fl">
+             <li class="photo_tabs_ops_gallery active _nohide">
+                <a href="javascript:void(0)">
+               		<span>Tra quelle caricate</span>
+                </a>
+            </li>
+            <li class="photo_tabs_ops_add _nohide">
+                <a href="javascript:void(0)">
+                	<span>Aggiungi una nuova</span>
+                    <img class="add_entities" src="skins/system/images/icn_plus.png" title="Aggiungi"/>
+                </a>
+            </li>
+        </ul>
+	</div>
+    <div class="gallery_img_div">
+		<ul class="gallery_img_list clearfix"> </ul>
+	</div>
+		
+	<div class="adder_img_div _hide">
+	</div>
+	<!--html di un elemento della galleria NON ELIMINARE-->
+	<noscript>
+		<!--
+		<li>
+			<div class="photo_preview_img_div">
+				<span class="centerer"> </span>
+				<img class="gallery_img" id="" src="" data-id="" data-original="" />
+				<div class="photo_preview_img_edit">
+				<div class="photo_preview_img_edit_header">
+					<span class="centerer">seleziona</span> 
+				</div>
+			</div>
+			</div>
+		</li>
+		//-->
+	</noscript>
+	<div id="photo-id-to-post" class="_hide"> </div>
+</fieldset>

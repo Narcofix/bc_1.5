@@ -495,18 +495,23 @@ margin-bottom: 8px}
 
 /* Content Manager */
 
-.tablesorter {
+.tablesorter,
+	.previewhead,
+	.tablesorter_photo {
 width: 100%;
 margin: -5px 0 0 0;
 }
 
-.tablesorter td{
+.tablesorter td,
+	.tablesorter_photo td{
 margin: 0;
 padding: 0;
 border-bottom: 1px dotted #ccc;
 }
 
-.tablesorter thead tr {
+.tablesorter thead tr,
+	.tablesorter_photo thead tr,
+	 .previewhead{
 height: 34px;
 background: url(../images/table_sorter_header.png) repeat-x;
 text-align: left;
@@ -514,12 +519,14 @@ text-indent: 10px;
 cursor: pointer;
 }
 
-.tablesorter td {
+.tablesorter td,
+	.tablesorter_photo td{
 padding: 15px 10px;
 }
 
 .tablesorter input[type=image] {
-margin-right: 10px;}
+margin-right: 10px;
+}
 
 ul.tabs {
 	margin: 3px 10px 0 0;
@@ -555,16 +562,29 @@ ul.tabs li a:hover {
 	color: #44474F;
 }
 
-html ul.tabs li.active a  {
+html ul.tabs li.active a,
+html ul.tabs a:active{
 	color: #44474F;
-	}
+}
 
-html ul.tabs li.active, html ul.tabs li.active a:hover  {
+html ul.tabs li.active,
+html ul.tabs li.active a:hover,
+html ul.tabs li:active{
 	background: #F1F2F4;
 	-webkit-box-shadow: inset 0 2px 3px #818181;
 	-moz-box-shadow: inset 0 2px 3px #818181;
 	box-shadow: inset 0 2px 3px #818181;
 }
+
+html ul.tabs li.disableli,
+html ul.tabs li.disableli a:hover,
+html ul.tabs li.disableli:active{
+	background: none!important;
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	box-shadow: none;
+}
+
 
 html ul.tabs li:first-child, html ul.tabs li:first-child a  {
 	-webkit-border-top-left-radius: 5px; -webkit-border-bottom-left-radius: 5px;
@@ -577,10 +597,16 @@ html ul.tabs li:last-child, html ul.tabs li:last-child a  {
 	-moz-border-radius-topright: 5px; -moz-border-radius-bottomright: 5px;
 	border-top-right-radius: 5px; border-bottom-right-radius: 5px;
 }
+html ul.tabs li:last-child{
+	padding-right: 0px!important;
+}
+html ul.tabs li:first-child{
+	padding-left: 0px!important;
+}
 
 #main .module header h3.tabs_involved {
 display: block;
-width: 60%;
+width: 20%;
 float: left;
 }
 
@@ -921,7 +947,6 @@ font-size: 14px;}
 }
 
 .module_form >fieldset{
-    width: 622px;
     border: none;
 }
 
@@ -1154,4 +1179,33 @@ input[type=file]{
 .installer-wrapper{
     width: 60%;
     margin: auto;
+}
+/**
+ * aggiunte alla ui di sistema
+ */
+.clearfix:after {
+		content: ".";
+		display: block;
+		clear: both;
+		visibility: hidden;
+		line-height: 0;
+		height: 0;
+}
+	
+.clearfix {
+		display: inline-block;
+}
+	
+html[xmlns] .clearfix {
+		display: block;
+}
+	
+* html .clearfix {
+		height: 1%;
+}
+._fl{
+	float: left;
+}
+._hide{
+	display: none!important;
 }

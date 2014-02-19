@@ -20,15 +20,12 @@ foreach($_REQUEST as $k=>$v)
 	$where_conditions[$k]=$v;
 }
 
-if(isset($_REQUEST["orderby"]))
-{
-	$order_condition=array($_REQUEST["order"]);
-}
+$order_condition = isset($_REQUEST["orderby"])? array($_REQUEST["orderby"]) : NULL;  
 
 /**
  * inserire l'ordinamento secondo la position
  */
-$entity->retrieveOnly($where_conditions,"",$order_condition);
+$entity->retrieveOnly($where_conditions,NULL,$order_condition);
 
 $presentation = $entity->getPresentation();
 $presentation = explode(", ", $presentation['fields'] );

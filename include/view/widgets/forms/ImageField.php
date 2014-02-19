@@ -15,13 +15,12 @@ class ImageField extends FormWidget {
 	 */
 	public function build($preload) {
 
-		$value="";
-		$preloadedId=0;
+		$preloadedIds=array();
 		
 		if($this->form->entity->loaded && $preload==PRELOAD)
 		{
 			$entityInstance=$this->form->entity->instances[0];
-			$preloadedId = $entityInstance->getFieldValue($this->name);
+			$preloadedIds[] = $entityInstance->getFieldValue($this->name);
 
             if(Settings::getOperativeMode() == 'debug'){
                 echo '<br />ImageField debugmode';
@@ -29,12 +28,13 @@ class ImageField extends FormWidget {
             }
 		}
 		$key = $this->form->formHash;
-		$widget = new Skinlet("widget/ImageField");
+		$widget = new Skinlet("widget/PhotoField");
+		$widget->setContent("multiselect", FALSE);
 		$widget->setContent("label", $this->label);
 		$widget->setContent("name",$key.'_'.$this->name);
 		$widget->setContent("formHash",$key);
 		$widget->setContent("loggedUsername",$_SESSION["user"]["username"]);
-		$widget->setContent("preloadedImageId",$preloadedId);
+		$widget->setContent("preloadedImageId",json_encode($preloadedIds,TRUE));
 		return $widget->get();
 	}
 }

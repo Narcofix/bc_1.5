@@ -24,9 +24,16 @@ class longDateField extends FormWidget {
 		$field_to_modify = $this->form->entity->getField($this->name);
 
 		if ($preload && $this->form->entity->loaded) {
-			$dateObj =new  DateTime($this->form->entity->instances[0]->getFieldValue($this->name));
-			$date = $dateObj->format("d/m/Y");
-			$time = $dateObj->format("H:i");
+			$value = $this->form->entity->instances[0]->getFieldValue($this->name);
+			//controllo che non sia il valore di default
+			if(strcmp($value, "0000-00-00 00:00:00") != 0){
+				$dateObj =new  DateTime($value);
+				$date = $dateObj->format("d/m/Y");
+				$time = $dateObj->format("H:i");
+			}else{
+				$date = "";
+				$time = "";
+			}
 		} else {
 			if ($this->mandatory == MANDATORY) {
 				$date = date("d/m/Y");

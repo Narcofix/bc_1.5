@@ -1,0 +1,712 @@
+<style type="text/css">
+	.contentDiv{
+		min-width: 800px;
+		margin-bottom:20px;
+	}
+	.tab_container_photo{
+		min-width: 300px;
+		width: 60%;
+	}
+	.tab_container_photo_preview{
+		min-width: 300px;
+		width: 40%;
+		min-height: 500px;
+		margin-left: -1px;
+		border-left: solid 1px #E6E6E6;
+	}
+	.previewhead{
+		line-height: 33px;
+		font-weight: bold;
+		text-indent: 10px;
+	}
+	.tablesorter_photo_selected_tr{
+		background-color: #F1F1F3;
+	}
+	.tablesorter_photo_info{
+		margin: 20px auto;
+	}
+	.tablesorter_photo_file_name:hover {
+		text-decoration: underline;
+	}
+	.tablesorter_photo_file_name {
+		cursor: pointer;
+	}
+	.tablesorter_photo_info tr{
+		height: 34px;
+		text-align: left;
+		text-indent: 10px;
+		cursor: pointer;
+	}
+	.deleteSelectedModalTit{
+		text-align:center;
+		font-weight: bold;
+		margin:10px auto;
+	}
+	
+	.deleteSelectedModalUl{
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
+	}
+	
+	.photo_preview_img_edit{
+		text-align: center;
+		margin-top:10px;
+	}
+	.photo_preview_img_edit .tabs{
+		float: none!important;
+		display:inline-block!important;
+		background: #F1F1F4 url(skins/system/images/secondary_bar.png) repeat-x;
+	}
+	.photo_preview_img_edit_header{
+		height:34px;
+		background: url(skins/system/images/table_sorter_header.png) repeat-x;
+		-webkit-border-radius: 5px;
+		-moz-border-radius: 5px;
+		border-radius: 5px;
+	}
+	.photo_preview_img_edit_header span{
+		line-height: 34px;
+		font-weight:bold;
+	}
+	.photo_preview_img_div_out{
+		margin: 0 auto;
+		width: 270px;
+		height: 270px;
+	}
+	.photo_preview_contents_mess{
+		width: 250px;
+		margin: 30px auto;
+		text-align: center;
+	}
+	
+	.photo_preview_img_div{
+		position:relative;
+		text-align: center;
+		width: 100%;
+		height: 100%;
+	}
+	.photo_preview_img_div span.centerer{
+		display: inline-block;
+	    height: 100%;
+	    vertical-align: middle;
+	}
+	.photo_preview_img_div img{
+		display: inline-block;
+	    vertical-align: middle;
+	}
+</style>
+
+<style type="text/css">
+	/*
+	 * imgAreaSelect animated border style
+	 */
+	
+	.imgareaselect-border1 {
+		background: url(skins/system/images/border-anim-v.gif) repeat-y left top;
+	}
+	
+	.imgareaselect-border2 {
+	    background: url(skins/system/images/border-anim-h.gif) repeat-x left top;
+	}
+	
+	.imgareaselect-border3 {
+	    background: url(skins/system/images/border-anim-v.gif) repeat-y right top;
+	}
+	
+	.imgareaselect-border4 {
+	    background: url(skins/system/images/border-anim-h.gif) repeat-x left bottom;
+	}
+	
+	.imgareaselect-border1, .imgareaselect-border2,
+	.imgareaselect-border3, .imgareaselect-border4 {
+	    filter: alpha(opacity=50);
+		opacity: 0.5;
+	}
+	
+	.imgareaselect-handle {
+	    background-color: #fff;
+		border: solid 1px #000;
+	    filter: alpha(opacity=50);
+		opacity: 0.5;
+	}
+	
+	.imgareaselect-outer {
+		background-color: #000;
+	    filter: alpha(opacity=50);
+		opacity: 0.5;
+	}
+	
+	.imgareaselect-selection {
+	}
+</style>
+<script type="text/javascript" src="skins/system/js/jquery-scrolltofixed-min.js"></script>
+<script type="text/javascript" src="skins/system/js/jquery.imgareaselect.min.js"></script>
+{literal}
+<script type="text/javascript">
+	var _lib = _lib || {};
+	_lib.Links = {
+		"service" : "{/literal}{$service_link}{literal}",
+		"imgInfo" : "info_images.php"
+	};
+{/literal}
+</script>
+{literal}
+<script type="text/javascript">
+	var _lib = _lib || {};
+	_lib.phototab = {};
+	_lib.phototabOps = {};
+	
+	//gestione dati tabella
+	(function(phototab) {
+		/**
+		 * ultima row selezionata
+		 */
+		phototab.last = -1;
+		/**
+		 * funzione che gestisce il click su una row della 
+		 * tabella delle immagini
+		 */
+		phototab.click = function(){
+			var $tr = $(this).parent("tr");
+			//ottengo l'id relativo al file
+			var id = $tr.find(".tablesorter_photo_id").val();
+			//ottengo tipo file 
+			var tipo = $tr.find(".tablesorter_photo_type").val();
+			
+			var newGet = last = tipo+"_"+id;
+			
+			if(phototab.last == newGet ) return;
+			
+			if("lastTr" in phototab)phototab.lastTr.removeClass("tablesorter_photo_selected_tr");
+			
+			$tr.addClass("tablesorter_photo_selected_tr");
+			
+			phototab.lastTr = $tr; 
+			
+			phototab.last = newGet; 
+			
+			if( 
+				"photoInfos" in _lib && 
+				"last" in _lib.photoInfos &&
+				"lastOp" in _lib.photoInfos[ _lib.photoInfos.last ] &&
+				_lib.photoInfos[ _lib.photoInfos.last ].lastOp != "end"
+			){
+				_lib.phototabOps[
+					_lib.photoInfos[ _lib.photoInfos.last ].lastOp+"Remove"
+				](null,null,"nomodal");
+			}
+			
+			$.get(
+				_lib.Links.imgInfo,
+				{ sys_photo_folder_id: id } 
+			)
+  			.done(function( data ) {
+    			$(".photo_preview_contents")
+    			.empty()
+    			.html(data);
+  			});
+			
+		};
+		//array ultime rows selezionate
+		phototab.lastSelected = [];
+		
+		//tabella alla quale applico le funzioni
+		phototab.table = null;
+		
+		phototab.handleAllCheckboxClick = function(){
+			phototab.selectAll( this.checked );
+		};
+		
+		//funziona che seleziona tutte le rows
+		phototab.selectAll = function( attiva ){
+			//svuoto l'array
+			phototab.lastSelected = [];
+			
+			//ottengo tutte le righe
+			var rows = phototab.table.find("tr").slice(1);
+			
+			//setto tutti i checkboxes
+			rows.find('input:checkbox').prop('checked',attiva);
+			
+			//esco poiche' e' stata richiesta la deselezione
+			if( attiva ){
+			
+				//ottengo tutti gli id delle righe selezionate
+				phototab.lastSelected = 
+					rows
+						.find(".tablesorter_photo_id")
+						.map( function(){
+							//moltiplico il valore per forzare il cast
+							return $(this).val()*1;
+						})
+						.get();
+			}
+			//controllo lunghezza array
+			//if(phototab.lastSelected.length <1)return;
+			phototab.updateCountView();
+		};
+		
+		phototab.updateCountView = function(){
+			var totImmagini = phototab.lastSelected.length;
+			$("#photo_tabs_sum")
+				.empty()
+				.append(
+					totImmagini>0 ? totImmagini+" immagini selezionate"
+					:""
+				);
+			//controllo se devo disabilitare il selectall
+			var selectAllCkBox = phototab.table
+				.find("tr")
+				.slice(0,1)
+				.find("input:checkbox");
+			
+			var totRows = phototab.table.find("tr").slice(1).length;
+							
+			//attivo o disattivo la checkbox della selezione multipla
+			selectAllCkBox.prop(
+				'checked',
+				(totRows ==  totImmagini)
+			);
+			
+			//se selezionata almeno una immagine mostro il pannello ops
+			$("[class^=photo_tabs_ops]:not(._nohide)")
+			.toggleClass("_hide",totImmagini<1);
+		};
+		
+		phototab.insertSelected = function( newVal ){
+			phototab.lastSelected.push( newVal );
+			//disattivabile
+			phototab.lastSelected.sort(function(a, b) {  return a - b; });
+		};
+		
+		phototab.deleteSelected = function( oldVal ){
+			var index = phototab.lastSelected.indexOf( oldVal );
+			if (index > -1)
+				phototab.lastSelected.splice(index, 1);
+		};
+		
+		phototab.handleOneCheckboxClick = function(){
+			var checkbox = $(this);
+			var photoid = checkbox.next(".tablesorter_photo_id").val() * 1;
+			
+			if(this.checked)
+				phototab.insertSelected(photoid);
+			else
+				phototab.deleteSelected(photoid);
+			
+			phototab.updateCountView();
+		};
+		
+		//ottenere i valori relativi alle righe selezionate
+		//per index di colonna
+		phototab.getSelectedRowsValues = function(columnIndex){
+			phototab.getSelectedRowsValuesIndex = columnIndex;
+
+			var testi = 
+				phototab.table.find("input:checkbox")
+					.slice(1)
+					.filter( ":checked" )
+					.closest("tr")
+					.map(function(){
+						var testo = 
+						$( this.cells[ _lib.phototab.getSelectedRowsValuesIndex ] )
+						.text();
+						return testo.trim();
+					}).get();
+			
+			return testi;
+		};
+
+		//inizializzo la libreria
+		phototab.init = function(){
+			//salvo copia tabella
+			phototab.table = $(".tablesorter_photo"); 
+			//inizializzo table sorter
+			phototab.table.tablesorter(
+    			//disabilito la colonna dei checkbox per la tabella delle immagini
+    			{headers: { 0 : { sorter: false } } } 
+    		);
+			//abilito preview
+			phototab.table
+				.find(".tablesorter_photo_file_name")
+				.click(_lib.phototab.click);
+			
+			var phototabRows = 
+				phototab.table
+				.find("tr");
+			
+			//abilito selezione multipla
+			phototabRows
+				.slice(0,1)
+				.find("input:checkbox")
+				.click(phototab.handleAllCheckboxClick);
+				
+			//abilito selezione di un solo checbox
+			phototabRows
+				.slice(1)
+				.find("input:checkbox")
+				.click(phototab.handleOneCheckboxClick);
+			
+			//disattivo i precedenti bind 	
+			$("[class^=photo_tabs_ops]").off();
+			//attivo elimina
+			$(".photo_tabs_ops_del").click(_lib.phototabOps.deleteSelectedModal);
+			
+			//attivo edit ops
+			$(".tab_container_photo_preview")
+			.on("click","[class^=photo_tabs_edit_ops]",_lib.phototabOps.editOpClick);
+			//attivo reset
+			
+			//pulsante fine operazione
+			
+			
+			
+			//sistemo altezza colonne
+			$('.tab_container').equalHeight();
+			//rendo la preview fixed se scroll attivo
+			$(".photo_preview_contents").scrollToFixed();
+		};
+		
+	})(_lib.phototab);
+	//gestione operazioni sui dati
+	(function(phototabOps) {
+		//funzione da utilizzare per le modal 
+		phototabOps.showModal = function( 
+			modalTitle,
+			//div sul quale costruire la modal
+			modalDiv,
+			//oggetto che contiene coppia
+			//testo --> funzione
+			//caso conferma
+			LButtonObj,
+			//oggetto che contiene coppia
+			//testo --> funzione
+			//caso abort
+			RButtonObj,
+			close
+		){
+			$( modalDiv ).dialog({
+				title: modalTitle,
+      			resizable: false,
+      			modal: true,
+      			buttons:[
+      				{
+      					text  : LButtonObj["testo"],
+      					click : LButtonObj["funzione"]  
+      				},
+      				{
+      					text  : RButtonObj["testo"],
+      					click : RButtonObj["funzione"]  
+      				}
+      			],
+      			close: close	
+      		});
+		};
+		
+		//funzione per eliminare le immagini selezionate
+		phototabOps.deleteSelected = function(){
+			
+			var lastId = _lib.phototab.lastSelected.pop();
+			
+			if(lastId){
+				var destUrl = _lib.Links["service"];
+				var data = {
+					action : "delete",
+					value : lastId
+				};
+				
+				if(_lib.phototab.lastSelected.length == 0){
+					phototabOps.GOTO("GET",destUrl,data);
+					//cambio pagina
+					return;
+				}else{
+					//eseguo la get
+					$.get(destUrl,data)
+  					.done(phototabOps.deleteSelected);
+  					return;
+				}
+			
+			}
+		};
+		
+		phototabOps.editOpClick = function(){
+			var $opEl = $(this); 
+			var opstr = $opEl.data("op");
+			var isend = opstr == "end";
+
+			if(
+				( _lib.photoInfos[ _lib.photoInfos.last ]["lastOp"] != "end") &&
+				!isend
+			)
+				return; 
+			
+			$(".photo_tabs_edit_ops_end")[isend || opstr=="reset" ? "addClass" : "removeClass" ]("_hide");
+			
+			if(isend) $opEl = $(".photo_tabs_edit_ops_" + _lib.photoInfos[ _lib.photoInfos.last ]["lastOp"] ); 
+			
+			$opEl[isend ? "removeClass" : "addClass" ]("active nodisableli");
+			
+			phototabOps.enableOtherEditOpsLi(isend);
+			
+			var precOp = _lib.photoInfos[ _lib.photoInfos.last ]["lastOp"];
+			_lib.photoInfos[ _lib.photoInfos.last ]["lastOp"] = opstr;
+			
+			if(isend)
+				phototabOps["endInit"]( precOp );
+    		else 
+    			phototabOps[opstr + "Init" ]();
+		};
+		//funzione abilita image crop
+		phototabOps.cropInit = function(){
+			if("ias" in _lib.photoInfos[ _lib.photoInfos.last ]["cropData"]){
+				phototabOps.cropSelectionEnable(
+					_lib.photoInfos[ _lib.photoInfos.last ]["cropData"]["ias"],
+					true
+				);
+			}
+			else{
+				_lib.photoInfos[ _lib.photoInfos.last ]["cropData"]["ias"] = 
+				$('.photo_preview_img_div img')
+				.imgAreaSelect({
+					instance: true,
+	        		handles: true,
+	        		imageWidth:	_lib.photoInfos[ _lib.photoInfos.last ]["W"],
+	        		imageHeight: _lib.photoInfos[ _lib.photoInfos.last ]["H"],
+					minHeight: 20,
+					minWidth: 20,
+					//selezione iniziale
+					x1: (_lib.photoInfos[ _lib.photoInfos.last ]["W"]/2) -10, 
+					y1: (_lib.photoInfos[ _lib.photoInfos.last ]["H"]/2) -10, 
+					x2: (_lib.photoInfos[ _lib.photoInfos.last ]["W"]/2) +10, 
+					y2: (_lib.photoInfos[ _lib.photoInfos.last ]["H"]/2) +10
+	    		});
+    		}
+		};
+		
+		phototabOps.cropEnd = function(){
+			_lib.photoInfos[ _lib.photoInfos.last ]["cropData"]["last"] = 
+				_lib.photoInfos[ _lib.photoInfos.last ]["cropData"]["ias"]
+				.getSelection();
+			
+			_lib.photoInfos[ _lib.photoInfos.last ]["cropData"]["last"]["image"] = _lib.photoInfos.last; 
+			_lib.photoInfos[ _lib.photoInfos.last ]["cropData"]["last"]["edit"] = "crop";
+			
+			$.ajax({
+				type : 'GET',
+  				async : false,
+  				url: "editOp.php",
+				data: _lib.photoInfos[ _lib.photoInfos.last ]["cropData"].last 
+			});
+
+			_lib.photoInfos[ _lib.photoInfos.last ]["cropData"].last = null;
+
+			_lib.phototabOps.cropRemove(null,null,this);
+			//aggiorno preview
+			_lib.phototab.last = null;
+			_lib.phototab.lastTr.find(".tablesorter_photo_file_name").click();
+			
+		};
+				
+		phototabOps.cropSelectionEnable = function(ias,enable){
+						
+			var iasOpts = ias.getOptions();
+			
+			iasOpts["disable"] = !enable;
+			iasOpts["hide"] = !enable;
+			
+			if(!enable)ias.cancelSelection();
+			
+			ias.setOptions(iasOpts);
+		};
+
+		phototabOps.cropRemove = function(event,ui,modalEx){
+			var THIS = modalEx || this;
+			//elimino il modal
+			if(THIS!="noModal")$(THIS).dialog('destroy').remove();
+			
+			phototabOps.cropSelectionEnable(
+				_lib.photoInfos[ _lib.photoInfos.last ]["cropData"]["ias"],
+				false
+			);
+		};
+		
+		phototabOps.resetInit = function(){
+			$(".photo_tabs_edit_ops_end").click();
+		};
+		
+		phototabOps.EndMess = {
+			"crop" : "Confermi il cropping dell'immagine selezionata?",
+			"reset": "Confermi di voler tornare all'immagine originale?"
+		};
+		
+		phototabOps.endInit = function(opstr){
+			var div = $("<div></div>")
+				.append(
+					'<div class= "deleteSelectedModalTit">'+
+					phototabOps.EndMess[opstr]+
+					'</div>'
+				);
+				
+			phototabOps.showModal(
+				"Conferma operazione",
+				div,
+				{testo : "annulla", funzione: _lib.phototabOps[opstr +"Remove"]},
+				{testo : opstr    , funzione: _lib.phototabOps[opstr +"End"]},
+				//on close
+				_lib.phototabOps[opstr +"Remove"]
+			);
+		};
+		
+		phototabOps.resetEnd = function(){
+			_lib.photoInfos[ _lib.photoInfos.last ]["resetData"]["last"] = {};
+			_lib.photoInfos[ _lib.photoInfos.last ]["resetData"]["last"]["image"] = _lib.photoInfos.last; 
+			_lib.photoInfos[ _lib.photoInfos.last ]["resetData"]["last"]["edit"] = "reset";
+			
+			$.ajax({
+				type : 'GET',
+  				async : false,
+  				url: "editOp.php",
+				data: _lib.photoInfos[ _lib.photoInfos.last ]["resetData"].last 
+			});
+
+			_lib.photoInfos[ _lib.photoInfos.last ]["resetData"].last = null;
+
+			_lib.phototabOps.resetRemove(null,null,this);
+			
+			//aggiorno preview
+			_lib.phototab.last = null;
+			_lib.phototab.lastTr.find(".tablesorter_photo_file_name").click();
+			
+			
+		};
+		phototabOps.resetRemove = function(event,ui,modalEx){
+			var THIS = modalEx || this;
+			//elimino il modal
+			if(THIS!="noModal")$(THIS).dialog('destroy').remove();
+		};
+		
+		
+		phototabOps.enableOtherEditOpsLi = function(enable){
+			$("[class^=photo_tabs_edit_ops]")
+			.not(".nodisableli")
+			[enable ? "removeClass" : "addClass" ]('disableli');
+		};
+		/**
+		 * cross browser goto
+		 * funziona creando un form nascosto
+		 * scritto senza l'ausilio di jquery
+		 */
+		phototabOps.GOTO = function (method,url, data){
+	    	var ele_form = document.createElement("FORM");
+	    	ele_form.method =method? method: "GET";
+	    	ele_form.id = 'GOTO_form';
+	    	ele_form.action = url;
+	    	if (!!data){
+	        	for(key in data){
+	            	var dummy_ele = document.createElement('INPUT');
+	            	dummy_ele.name = key;
+	            	dummy_ele.value = data[key];
+	            	dummy_ele.type = 'hidden';
+	            	ele_form.appendChild(dummy_ele);
+	        	}
+	    	}
+    		document.getElementsByTagName('body')[0].appendChild(ele_form);
+    		document.getElementById('GOTO_form').submit();
+		};
+		
+		//funzione per mostrare modal eliminazione
+		phototabOps.deleteSelectedModal = function(){
+			var div = $("<div></div>")
+				.append(
+					'<div class= "deleteSelectedModalTit">'+
+					'Confermi di voler eliminare le seguenti immagini?'+
+					'</div>'
+				)
+				.append(
+					 '<ul class="deleteSelectedModalUl"><li>'
+					+ _lib.phototab.getSelectedRowsValues(1).join("</li><li>")
+					+ "</li></ul>"
+				);
+			
+			phototabOps.showModal(
+				"Elimina",
+				div,
+				{testo : "annulla",funzione: function() { $(this).dialog('destroy').remove(); }},
+				{testo : "elimina",funzione: function() { 
+					_lib.phototabOps.deleteSelected();
+				}}
+			);
+			
+		};
+		
+	})(_lib.phototabOps);
+	
+	$(document).ready(function() {
+		_lib.phototab.init();
+	});
+</script>
+{/literal}
+<article class="contentDiv module width_3_quarter">
+    <header>
+    	<h3 class="tabs_involved">Content Manager</h3>
+       
+        <ul class="tabs">
+            <li class="active">
+            	<a href="#tab1">Image</a>
+            </li>
+            <li class="photo_tabs_ops_sum active">
+				<span id="photo_tabs_sum"> </span>
+			</li>
+			<li class="photo_tabs_ops_del _hide">
+                <a href="javascript:void(0)">
+                    <img class="add_entities" src="skins/system/images/icn_trash.png" title="Elimina"/>
+                </a>
+            </li>
+            <li class="photo_tabs_ops_add _nohide">
+                <a href="{$service_link}?action=emit">
+                    <img class="add_entities" src="skins/system/images/icn_plus.png" title="Aggiungi"/>
+                </a>
+            </li>
+        </ul>
+    </header>
+    {if $instances != null || $instance != null}
+    <div class="tab_container tab_container_photo _fl ">
+        <div id="tab1" class="tab_content" style="display: block;">
+            <table class="tablesorter_photo" cellspacing="0">
+                <thead>
+                <tr>
+                    <th class="header"> <input type="checkbox"> </th>
+					<th class="header"> Nome file </th>
+					<th class="header"> Data upload </th>
+                 </tr>
+                </thead>
+                <tbody>
+                {foreach from=$instances item=instance}
+                <tr>
+                    <td>
+                    	<input type="checkbox"> 
+                    	<input class="tablesorter_photo_id"   type="hidden" value="{$instance->id}">
+                    	<input class="tablesorter_photo_type" type="hidden" value="0">
+                    </td>
+					<td class="tablesorter_photo_file_name"> {$instance->filename} </td>
+					<td>{date('d/m/Y H:i:s',strtotime($instance->uploadDate))} </td>
+                </tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div><!-- end of #tab1 -->
+
+    </div><!-- end of .tab_container -->
+    <div class="tab_container tab_container_photo_preview _fl">
+    	<div class="header previewhead">Dettagli</div>
+    	<div class="photo_preview_contents">
+    		<div class="photo_preview_contents_mess">
+    			Scegli uno dei file sulla sinistra
+    		</div>	
+    	</div>
+    </div><!-- end of .tab_container -->
+    {else}
+	<h1>Non hai ancora caricato nessun file</h1>
+	{/if}
+</article>

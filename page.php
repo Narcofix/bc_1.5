@@ -13,6 +13,6 @@ $main = new Skin();
 
 InitGraphic::getInstance()->createGraphic($main);
 
-$content = new Content($pageEntity);
+$content = new Content($pageEntity,$photoToFolderEntity);
 $main->setContent("body", $content->get());
 $main->close();

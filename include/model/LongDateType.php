@@ -55,10 +55,16 @@ class LongDateType extends baseType {
 	 * @ParamType commaId 
 	 */
 	public function save($commaId) {
-		$date = explode("/",$this->value);
-		$value = $date[2]."-".$date[1]."-".$date[0]." ";
-		$time = explode(":", $_REQUEST[$this->name."_time"]);
-		$value .= $time[0].":".$time[1].":00";
+		if(isset($_REQUEST[$this->name."_time"])){
+			$date = explode("/",$this->value);
+			$value = $date[2]."-".$date[1]."-".$date[0]." ";
+			$time = explode(":", $_REQUEST[$this->name."_time"]);
+			$value .= $time[0].":".$time[1].":00";
+		}
+		else{
+			$longDateTime = DateTime::createFromFormat('d/m/Y H:i:s' , $this->value);
+			$value = $longDateTime->format('Y/m/d H:i:s'); 
+		}		
 		return Parser::first_comma($commaId,", ")."'{$value}'";
 	}
 
@@ -70,11 +76,16 @@ class LongDateType extends baseType {
 	 * @ParamType value 
 	 */
 	public function update($commaId, $value) {
-		
-		$date = explode("/",$value);
-		$value = $date[2]."-".$date[1]."-".$date[0]." ";
-		$time = explode(":", $_REQUEST[$this->name."_time"]);
-		$value .= $time[0].":".$time[1].":00";
+		if(isset($_REQUEST[$this->name."_time"])){
+			$date = explode("/",$value);
+			$value = $date[2]."-".$date[1]."-".$date[0]." ";
+			$time = explode(":", $_REQUEST[$this->name."_time"]);
+			$value .= $time[0].":".$time[1].":00";
+		}
+		else{
+			$longDateTime = DateTime::createFromFormat('d/m/Y H:i:s' , $this->value);
+			$value = $longDateTime->format('Y/m/d H:i:s'); 
+		}
 		
 		$query .= Parser::first_comma($commaId,", ")."{$this->name}='{$value}'";
 		return $query;

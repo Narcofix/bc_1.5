@@ -7,7 +7,7 @@
  * To change this template use File | Settings | File Templates.
  */
 require_once realpath(dirname(__FILE__)) . '/core.php';
-require_once realpath(dirname(__FILE__)) . '/entityImage.php';
+require_once realpath(dirname(__FILE__)) . '/entityPhotoToFolder.php';
 require_once realpath(dirname(__FILE__)) . '/entitySlider.php';
 
-$imageSliderRelation = new Relation($imageEntity, $sliderEntity);
+$imageSliderRelation = new Relation($photoToFolderEntity, $sliderEntity);

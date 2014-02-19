@@ -20,7 +20,7 @@ $form->addText("descrizione", "Descrizione", 40);
 $form->addText("width", "Largezza", 40, MANDATORY);
 $form->addText("height", "Altezza",40);
 
-$relationForm = new RelationForm("dataEntry3", $imageSliderRelation);
+$relationForm = new PhotoRelationForm("dataEntry3", $imageSliderRelation);
 $relationForm->addSection('Immagini da legare');
 $relationForm->addRelationManager("id_sys_image", "Immagine", LEFT);
 $form->triggers($relationForm);
@@ -29,6 +29,7 @@ $relationPageForm = new RelationForm("dataEntry3", $sliderPageRelation);
 $relationPageForm->addSection('Pagine da legare');
 $relationPageForm->addRelationManager("id_sys_page", "Pagine");
 $form->triggers($relationPageForm);
+
 
 $main->setContent("body", $form->requestAction());
 

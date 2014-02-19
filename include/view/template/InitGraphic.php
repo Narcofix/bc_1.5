@@ -32,15 +32,24 @@ class InitGraphic{
 	 * header e footer: header e footer del tema
 	 *
 	 */
-	public function createGraphic($skin)
+	public function createGraphic($skin,$headOn = TRUE ,$headerOn=TRUE,$footerOn=TRUE)
 	{
-        /*skinlet frame-public-head: skins/theme/header.html*/
-        $head = new Skinlet("frame-public-head");
-
-        /*skinlet header: skins/theme/header.html*/
-	$header = new Skinlet("header");
-        /*skinlet footer: skins/theme/footer.html*/
-        $footer = new Skinlet("footer");
+		if($headOn){
+        	/*skinlet frame-public-head: skins/theme/header.html*/
+        	$head = new Skinlet("frame-public-head");
+			/*creazione della struttura*/
+        	$skin->setContent("head", $head->get());
+		}
+		if($headerOn){
+        	/*skinlet header: skins/theme/header.html*/
+			$header = new Skinlet("header");
+			$skin->setContent("header", $header->get());
+		}
+		if($footerOn){
+        	/*skinlet footer: skins/theme/footer.html*/
+        	$footer = new Skinlet("footer");
+			$skin->setContent("footer", $footer->get());
+		}
 
         /*funzionalità breadcrump
 
@@ -57,12 +66,6 @@ class InitGraphic{
                 $breadcrump->setContent('actual_script',str_replace("/", "", $_SERVER['REQUEST_URI']) );
 
             $skin->setContent("sitemap", $breadcrump->get());  */
-
-
-        /*creazione della struttura*/
-        $skin->setContent("head", $head->get());
-        $skin->setContent("header", $header->get());
-        $skin->setContent("footer", $footer->get());
 	}
 
     /**
