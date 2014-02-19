@@ -32,11 +32,14 @@ class InitGraphic{
 	 * header e footer: header e footer del tema
 	 *
 	 */
-	public function createGraphic($skin,$headerOn=TRUE,$footerOn=TRUE)
+	public function createGraphic($skin,$headOn = TRUE ,$headerOn=TRUE,$footerOn=TRUE)
 	{
-        /*skinlet frame-public-head: skins/theme/header.html*/
-        $head = new Skinlet("frame-public-head");
-
+		if($headOn){
+        	/*skinlet frame-public-head: skins/theme/header.html*/
+        	$head = new Skinlet("frame-public-head");
+			/*creazione della struttura*/
+        	$skin->setContent("head", $head->get());
+		}
 		if($headerOn){
         	/*skinlet header: skins/theme/header.html*/
 			$header = new Skinlet("header");
@@ -47,9 +50,6 @@ class InitGraphic{
         	$footer = new Skinlet("footer");
 			$skin->setContent("footer", $footer->get());
 		}
-		
-        /*creazione della struttura*/
-        $skin->setContent("head", $head->get());
 
         /*funzionalità breadcrump
 
