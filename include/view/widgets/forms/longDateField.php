@@ -25,7 +25,6 @@ class longDateField extends FormWidget {
 
 		if ($preload && $this->form->entity->loaded) {
 			$value = $this->form->entity->instances[0]->getFieldValue($this->name);
-			error_log($value);
 			//controllo che non sia il valore di default
 			if(strcmp($value, "0000-00-00 00:00:00") != 0){
 				$dateObj =new  DateTime($value);
