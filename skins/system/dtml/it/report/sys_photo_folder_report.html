@@ -205,6 +205,10 @@
     			$(".photo_preview_contents")
     			.empty()
     			.html(data);
+    			
+    			//sistemo altezza colonne
+				$('.tab_container').equalHeight();
+    			
   			});
 			
 		};
@@ -356,12 +360,6 @@
 			//attivo edit ops
 			$(".tab_container_photo_preview")
 			.on("click","[class^=photo_tabs_edit_ops]",_lib.phototabOps.editOpClick);
-			//attivo reset
-			
-			//pulsante fine operazione
-			
-			
-			
 			//sistemo altezza colonne
 			$('.tab_container').equalHeight();
 			//rendo la preview fixed se scroll attivo
