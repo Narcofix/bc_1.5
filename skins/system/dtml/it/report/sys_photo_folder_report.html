@@ -208,10 +208,13 @@
     				//sistemo altezza colonne
 				$('.tab_container').equalHeight();
     				$(".photo_preview_contents")
-    				.find("#liveReport")
-				//rendo la preview fixed se scroll attivo
-				.scrollToFixed();
-    			
+    				.find(".photo_preview_img_div img")
+    				.load(function(){
+    					$(this)
+    					.parent("#liveReport")
+					//rendo la preview fixed se scroll attivo
+					.scrollToFixed();	
+    				})
   			});
 			
 		};
