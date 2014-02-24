@@ -208,16 +208,7 @@
     				.html(data);
     				//sistemo altezza colonne
 				$('.tab_container').equalHeight();
-    				$(".photo_preview_contents")
-    				.find(".photo_preview_img_div img")
-    				.load(function(){
-    					$(this)
-    					.parent("#liveReport")
-					//rendo la preview fixed se scroll attivo
-					.scrollToFixed();	
-    				});
   			});
-			
 		};
 		//array ultime rows selezionate
 		phototab.lastSelected = [];
@@ -369,6 +360,19 @@
 			.on("click","[class^=photo_tabs_edit_ops]",_lib.phototabOps.editOpClick);
 			//sistemo altezza colonne
 			$('.tab_container').equalHeight();
+			
+			//rendo la preview fixed se scroll attivo
+			$(".photo_preview_contents").scrollToFixed(
+				{
+					limit : function(){
+						var H = $(".photo_preview_contents").outerHeight(true);
+						var $tcpp = $(".tab_container_photo_preview");
+						var offset = $tcpp.offset().top + $tcpp.outerHeight();
+						 
+						return offset -H -10;
+					}
+				}
+			);
 		};
 		
 	})(_lib.phototab);
